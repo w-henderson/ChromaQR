@@ -1,7 +1,4 @@
-*.png
-*.jpg
-!tests/*.jpg
-!tests/*.png
+*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -29,6 +29,6 @@ def main():
             print("error: you must provide an --inFile to decode")
             return
 
-        decoder = Decoder(debug=True)
+        decoder = Decoder()
         decoded_bytes = decoder.decode(inputImage)
         print(decoded_bytes)

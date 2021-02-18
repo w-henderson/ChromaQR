@@ -11,7 +11,7 @@ Base encoder for QR codes.
 Initialised by defining the error correction level.
 """
 class Encoder:
-    def __init__(self, error_correction = ErrorCorrection.MED):
+    def __init__(self, error_correction = ErrorCorrection.LOW):
         self.error_correction = error_correction
 
     def encode(self, data: bytearray) -> Image:

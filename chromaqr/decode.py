@@ -12,11 +12,20 @@ class Decoder:
     def decode(self, image: Image) -> bytearray:
         decoded_bytes = b""
 
-        if image.size[0] > 800 or image.size[1] > 800:
-            image.thumbnail((800, 800))
+        if image.mode == "RGBA":
+            converted_image = Image.new("RGB", image.size, (255, 255, 255))
+            mask = image.split()[3]
+            mask = ImageOps.colorize(mask, "#000000", "#ffffff", blackpoint=254, whitepoint=255)
+            mask = mask.convert("1")
+            converted_image.paste(image, mask=mask)
+        else:
+            converted_image = image
+
+        if converted_image.size[0] > 800 or converted_image.size[1] > 800:
+            converted_image.thumbnail((800, 800))
 
         for i in range(3):
-            rgb_image = ImageOps.colorize(image.split()[i], "#000000", "#ffffff", blackpoint=100, whitepoint=180)
+            rgb_image = ImageOps.colorize(converted_image.split()[i], "#000000", "#ffffff", blackpoint=100, whitepoint=180)
             decoded_codes = pyzbar.decode(rgb_image, symbols=[pyzbar.ZBarSymbol.QRCODE])
 
             if self.debug:
@@ -27,7 +36,7 @@ class Decoder:
 
             decoded_code = decoded_codes[0]
             decoded_bytes += decoded_code.data
-            image = image.crop((
+            converted_image = converted_image.crop((
                 decoded_code.rect.left,
                 decoded_code.rect.top,
                 decoded_code.rect.left + decoded_code.rect.width,
