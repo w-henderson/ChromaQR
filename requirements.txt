@@ -1,0 +1,4 @@
+pyzbar
+colorama
+qrcode
+pillow
