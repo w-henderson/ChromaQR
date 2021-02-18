@@ -6,15 +6,21 @@ import math
 # Error correction: LOW, MEDIUM, HIGH or MAX.
 ErrorCorrection = Enum("ErrorCorrection", "LOW MED HIGH MAX")
 
-"""
-Base encoder for QR codes.
-Initialised by defining the error correction level.
-"""
 class Encoder:
-    def __init__(self, error_correction = ErrorCorrection.LOW):
-        self.error_correction = error_correction
+    """
+    Base encoder for QR codes.
+    Initialised by defining the error correction level.
+    """
+
+    def __init__(self, error_correction = "MED"):
+        self.error_correction = ErrorCorrection[error_correction]
 
     def encode(self, data: bytearray) -> Image:
+        """
+        Encode a bytearray into a ChromaQR code.
+        Returns a PIL Image which can be saved with `.save("filename.png")`.
+        """
+
         codes = []
         section_length = math.ceil(len(data) / 3)
         split_data = [
@@ -30,10 +36,15 @@ class Encoder:
             ErrorCorrection.MAX: constants.ERROR_CORRECT_H
         }
 
+        target_version = -1
         for i in range(3):
-            qr_code = QRCode(error_correction = error_correction_map[self.error_correction])
+            qr_code = QRCode(
+                version = target_version if i > 0 else None,
+                error_correction = error_correction_map[self.error_correction]
+            )
             qr_code.add_data(split_data[i], optimize=0)
             qr_code.make()
+            if i == 0: target_version = qr_code.version
             qr_code_image = qr_code.make_image(fill_color="black", back_color="white")
             codes.append(qr_code_image.convert("L"))
 

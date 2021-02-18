@@ -1,15 +1,23 @@
 from PIL import Image, ImageEnhance, ImageOps
 from pyzbar import pyzbar
 
-"""
-Base decoder for QR codes.
-Currently cannot be customised.
-"""
 class Decoder:
+    """
+    Base decoder for QR codes.
+    Currently cannot be customised.
+    """
+
     def __init__(self, debug=False):
         self.debug = debug
 
     def decode(self, image: Image) -> bytearray:
+        """
+        Decode the given PIL Image containing a ChromaQR code into a bytearray.
+        If no QR code can be found, an empty bytearray will be returned.
+        
+        If the `Decoder` object has the property `debug` set to `True`, the program will save the processed image for each of the codes.
+        """
+
         decoded_bytes = b""
 
         if image.mode == "RGBA":
