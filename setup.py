@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 setup(
     name="ChromaQR",
     version="0.0.1",
-    description="Get three times the data into a QR code with RGB.",
+    description="Get three times the data into a QR code using RGB.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="w-henderson",
