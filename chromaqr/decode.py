@@ -6,8 +6,8 @@ Base decoder for QR codes.
 Currently cannot be customised.
 """
 class Decoder:
-    def __init__(self):
-        return
+    def __init__(self, debug=False):
+        self.debug = debug
 
     def decode(self, image: Image) -> bytearray:
         decoded_bytes = b""
@@ -18,12 +18,20 @@ class Decoder:
         for i in range(3):
             rgb_image = ImageOps.colorize(image.split()[i], "#000000", "#ffffff", blackpoint=100, whitepoint=180)
             decoded_codes = pyzbar.decode(rgb_image, symbols=[pyzbar.ZBarSymbol.QRCODE])
-            decoded_bytes += decoded_codes[0].data
+
+            if self.debug:
+                rgb_image.save("debug_{}.png".format(i))
+
+            if len(decoded_codes) == 0:
+                return b""
+
+            decoded_code = decoded_codes[0]
+            decoded_bytes += decoded_code.data
             image = image.crop((
-                decoded_codes[0].rect.left,
-                decoded_codes[0].rect.top,
-                decoded_codes[0].rect.left + decoded_codes[0].rect.width,
-                decoded_codes[0].rect.top + decoded_codes[0].rect.height,
+                decoded_code.rect.left,
+                decoded_code.rect.top,
+                decoded_code.rect.left + decoded_code.rect.width,
+                decoded_code.rect.top + decoded_code.rect.height,
             ))
 
         return decoded_bytes
