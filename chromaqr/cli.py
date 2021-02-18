@@ -14,7 +14,7 @@ def main():
     parser.add_argument("--inFile", type=str, help="path to input file")
     parser.add_argument("--text", type=str, help="text to encode")
     parser.add_argument("--outFile", type=str, help="path to output file")
-    parser.add_argument("--debug", action="store_true", help="whether to encode in debug mode")
+    parser.add_argument("--debug", action="store_true", help="whether to decode in debug mode")
     parser.add_argument("--errorCorrection", choices=["LOW", "MED", "HIGH", "MAX"], default="MED", help="level of error correction to use")
     args = parser.parse_args()
 
@@ -40,11 +40,11 @@ def main():
             print("error: you must provide an --inFile to decode")
             return
 
-        decoder = Decoder()
+        decoder = Decoder(debug=args.debug)
         decoded_bytes = decoder.decode(inputImage)
 
         if args.outFile != None:
             with open(args.outFile, "wb") as f:
                 f.write(decoded_bytes)
         else:
-            print(decoded_bytes)
+            print(decoded_bytes.decode())
