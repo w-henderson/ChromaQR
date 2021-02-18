@@ -1,5 +1,7 @@
 import argparse
+from PIL import Image
 from .encode import Encoder
+from .decode import Decoder
 
 def main():
     parser = argparse.ArgumentParser(description="Get three times the data into a QR code using RGB.")
@@ -19,3 +21,14 @@ def main():
         encoder = Encoder()
         image = encoder.encode(inputBytes)
         image.save("test.png")
+    
+    elif args.command == "decode":
+        if args.inFile != None:
+            inputImage = Image.open(args.inFile)
+        else:
+            print("error: you must provide an --inFile to decode")
+            return
+
+        decoder = Decoder()
+        decoded_bytes = decoder.decode(inputImage)
+        print(decoded_bytes)
