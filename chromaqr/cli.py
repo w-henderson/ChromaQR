@@ -20,7 +20,11 @@ def main():
 
         encoder = Encoder()
         image = encoder.encode(inputBytes)
-        image.save("test.png")
+
+        if args.outFile != None:
+            image.save(args.outFile)
+        else:
+            print("error: you must provide an --outFile to encode to")
     
     elif args.command == "decode":
         if args.inFile != None:
@@ -31,4 +35,9 @@ def main():
 
         decoder = Decoder()
         decoded_bytes = decoder.decode(inputImage)
-        print(decoded_bytes)
+
+        if args.outFile != None:
+            with open(args.outFile, "wb") as f:
+                f.write(decoded_bytes)
+        else:
+            print(decoded_bytes)
