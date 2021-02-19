@@ -21,6 +21,10 @@ def home():
 def demo():
     return render_template("demo.html")
 
+@app.route("/realtime")
+def realtime():
+    return render_template("realtime.html")
+
 @app.route("/logo.png")
 def logo():
     return send_file(f"{absolute_directory}\\..\\tests\\images\\generated.png")

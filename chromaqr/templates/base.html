@@ -21,7 +21,7 @@
                 padding: 15px;
             }
         }
-        
+
         img {
             margin: 0 5px 5px 0;
         }
@@ -36,7 +36,10 @@
             <img src="https://img.shields.io/badge/python-3-blue?style=for-the-badge&logo=python">
             <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge">
             <img src="https://img.shields.io/badge/colour-chroma-red?style=for-the-badge"><br>
-            <a href="{{ url_for('home') }}">Home</a> &bull; <a href="{{ url_for('demo') }}">API Demo</a> &bull; <a href="https://github.com/w-henderson/ChromaQR">GitHub</a>
+            <a href="{{ url_for('home') }}">Home</a> &bull;
+            <a href="{{ url_for('demo') }}">API Demo</a> &bull;
+            <a href="{{ url_for('realtime') }}">Realtime Demo</a> &bull;
+            <a href="https://github.com/w-henderson/ChromaQR">GitHub</a>
         </p>
         
         {% block header %}{% endblock %}

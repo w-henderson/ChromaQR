@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime API Demo | ChromaQR</title>
+    <style>
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: Helvetica;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        video {
+            width: 100%;
+            height: calc(100% - 50px);
+        }
+        div {
+            width: 100%;
+            height: 50px;
+            padding: 12.5px;
+        }
+    </style>
+    <script>
+        window.onload = () => {
+            let video = document.querySelector("video");
+            let div = document.querySelector("div");
+            let rect = video.getBoundingClientRect();
+
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: rect.width },
+                    height: { ideal: rect.height },
+                    facingMode: "environment"
+                },
+                audio: false
+            }).then((stream) => {
+                document.querySelector("video").srcObject = stream;
+                document.querySelector("video").play();
+
+                function capture() {
+                    new ImageCapture(stream.getVideoTracks()[0]).grabFrame().then((frame) => {
+                        let virtualCanvas = document.createElement("canvas");
+                        virtualCanvas.width = frame.width;
+                        virtualCanvas.height = frame.height;
+                        let ctx = virtualCanvas.getContext("2d");
+                        ctx.drawImage(frame, 0, 0);
+                        let dataURL = virtualCanvas.toDataURL("image/png");
+
+                        let formData = new FormData();
+                        formData.append("url", dataURL);
+
+                        window.fetch("/decode", {
+                            method: "POST",
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                div.textContent = result.result;
+                                div.style.fontWeight = "bold";
+                                window.setTimeout(capture, 5000);
+                            } else {
+                                div.textContent = "Detecting...";
+                                div.style.fontWeight = "normal";
+                                window.setTimeout(capture, 1000);
+                            }
+                        });
+                    });
+                }
+
+                capture();
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <video></video>
+    <div>
+        Detecting...
+    </div>
+</body>
+
+</html>
