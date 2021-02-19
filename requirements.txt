@@ -2,3 +2,5 @@ pyzbar
 colorama
 qrcode
 pillow
+flask
+flask-cors
