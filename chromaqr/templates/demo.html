@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <h1>{% block title %}API Demo | ChromaQR API{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h2>Encoding Demo</h2>
+    <form action="/encode" method="POST" enctype="multipart/form-data">
+        <input type="text" name="data" placeholder="Text to encode" style="margin-bottom:5px;height:2em;" />
+        <input type="submit" style="height:2em;" /><br>
+        <input type="radio" id="json" name="format" value="json" checked>
+        <label for="json">Return JSON (default)</label> &bull;
+        <input type="radio" id="image" name="format" value="image">
+        <label for="image">Return image</label> &bull;
+        <label for="ec">Error correction level:</label>
+        <select id="ec" name="errorCorrection">
+            <option value="LOW">LOW</option>
+            <option value="MED" selected>MED</option>
+            <option value="HIGH">HIGH</option>
+            <option value="MAX">MAX</option>
+        </select>
+    </form>
+
+    <h2>Decoding Demo</h2>
+    <form action="/decode" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" />
+        <input type="submit" />
+    </form>
+{% endblock %}

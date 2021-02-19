@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, send_file
+from flask import Flask, Response, request, send_file, render_template
 from flask_cors import CORS
 from .encode import Encoder
 from .decode import Decoder
@@ -7,17 +7,23 @@ from PIL import Image
 from base64 import b64encode, b64decode
 import os
 import json
+import urllib.request
 
-app = Flask("ChromaQR")
+absolute_directory = __file__.replace("\\server.py", "")
+app = Flask("ChromaQR", template_folder=f"{absolute_directory}\\templates")
 CORS(app)
 
 @app.route("/")
 def home():
-    return """
-        <style>body{font-family:Helvetica;text-align:center;margin-top:200px;}</style>
-        <h1>ChromaQR API</h1>
-        <a href="https://github.com/w-henderson/ChromaQR">GitHub</a> &bull; <a href="/demo">Demo</a>
-    """
+    return render_template("home.html")
+
+@app.route("/demo")
+def demo():
+    return render_template("demo.html")
+
+@app.route("/logo.png")
+def logo():
+    return send_file(f"{absolute_directory}\\..\\tests\\images\\generated.png")
 
 @app.route("/encode", methods=["POST"])
 def encode():
@@ -82,17 +88,21 @@ def encode():
 def decode():
     """
     Decoding endpoint for the API.
-    Takes a file upload called image.
+    Takes a file upload called `image` or a URL pointing to an image called `url`.
     """
 
     try:
-        file = request.files["image"]
-        image = Image.open(file.stream)
+        if "url" in request.form.to_dict().keys():
+            response = urllib.request.urlopen(request.form.to_dict()["url"])
+            image = Image.open(BytesIO(response.read()))
+        else:    
+            file = request.files["image"]
+            image = Image.open(file.stream)
     except:
         return Response(json.dumps({
             "method": "decode",
             "success": False,
-            "error": "no image file was recognised in your request, make sure it's called 'image'"
+            "error": "no image file was recognised in your request, either upload a file with the identifier 'image' or submit a URL called 'url'"
         }), status=400, mimetype="application/json")
 
     decoder = Decoder()
@@ -113,44 +123,3 @@ def decode():
 
 def run(host="0.0.0.0", port=8000):
     app.run(host, port)
-
-@app.route("/demo")
-def demo():
-    return """
-        <html>
-            <meta name="viewport" content="width=device-width">
-            <title>ChromaQR API Demo</title>
-            <style>
-                body {
-                    font-family:Helvetica;
-                    text-align:center;
-                    margin-top:200px;
-                }
-            </style>
-            <body>
-                <h1 style="margin-top:0">ChromaQR API Demo</h1>
-                <h2>Demo Encode</h2>
-                <form action="/encode" method="POST" enctype="multipart/form-data">
-                    <input type="text" name="data" placeholder="Text to encode" style="margin-bottom:5px" />
-                    <input type="submit" /><br>
-                    <label for="ec">Error correction level:</label>
-                    <select id="ec" name="errorCorrection">
-                        <option value="LOW">LOW</option>
-                        <option value="MED" selected>MED</option>
-                        <option value="HIGH">HIGH</option>
-                        <option value="MAX">MAX</option>
-                    </select><br>
-                    <input type="radio" id="json" name="format" value="json" checked>
-                    <label for="json">Return JSON (default)</label>
-                    <input type="radio" id="image" name="format" value="image">
-                    <label for="image">Return image</label>
-                </form>
-                <h2>Demo Decode</h2>
-                <form action="/decode" method="POST" enctype="multipart/form-data">
-                    <input type="file" name="image" />
-                    <input type="submit" />
-                </form><br>
-                <a href="https://github.com/w-henderson/ChromaQR">Visit the GitHub</a>
-            </body>
-        </html>
-    """

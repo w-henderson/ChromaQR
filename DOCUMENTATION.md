@@ -50,9 +50,9 @@ $ curl --data data="Hello from ChromaQR!" https://chromaqr.herokuapp.com/encode
     "result": "data:image/png;base64,... data URI here"
 }
 
-$ curl --data "data='Hello from ChromaQR!'&format=image" https://chromaqr.herokuapp.com/encode --output "demo.png"
+$ curl --data "data=Hello from ChromaQR!&format=image" https://chromaqr.herokuapp.com/encode --output "demo.png"
 
-$ curl --data "data='Hello from ChromaQR!'&errorCorrection=MAX" https://chromaqr.herokuapp.com/encode
+$ curl --data "data=Hello from ChromaQR!&errorCorrection=MAX" https://chromaqr.herokuapp.com/encode
 {
     "method": "encode",
     "success": true,
@@ -62,7 +62,7 @@ $ curl --data "data='Hello from ChromaQR!'&errorCorrection=MAX" https://chromaqr
 ```
 
 ### Decoding
-To decode with the API, send a POST request to the `/decode` endpoint (on my Heroku instance this will be `https://chromaqr.herokuapp.com/decode`) with the form file `image` set to the image file you wish to decode. If an error occurs, this is sent.
+To decode with the API, send a POST request to the `/decode` endpoint (on my Heroku instance this will be `https://chromaqr.herokuapp.com/decode`) with the form file `image` set to the image file you wish to decode. Alternatively, set the parameter `url` to a URL containing an image to decode instead. If an error occurs, this is sent.
 
 **Example with `curl`:**
 ```sh
@@ -73,7 +73,14 @@ $ curl -F image=@demo.png https://chromaqr.herokuapp.com/decode
     "result": "Hello from ChromaQR!"
 }
 
-$ curl -F image=@bad_image.png https://chromaqr.herokuapp.com/encode
+$ curl --data url=https://example.com/image.png https://chromaqr.herokuapp.com/decode
+{
+    "method": "decode",
+    "success": true,
+    "result": "Hello from ChromaQR!"
+}
+
+$ curl -F image=@bad_image.png https://chromaqr.herokuapp.com/decode
 {
     "method": "decode",
     "success": false,

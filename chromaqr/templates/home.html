@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <h1>{% block title %}ChromaQR API | Home{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+A traditional QR code allows for a maximum of just <a href="https://www.qrcode.com/en/about/version.html">2953 bytes</a> to be encoded, as it only uses black and white colours. I saw an easy upgrade here: why not use the three RGB colour channels separately to triple the storage to 8859 bytes? So that's what ChromaQR does, in the form of a CLI, HTTP API, and Python package.<br><br>
+
+<b>Read more on the <a href="https://github.com/w-henderson/ChromaQR">GitHub</a>.</b>
+{% endblock %}
