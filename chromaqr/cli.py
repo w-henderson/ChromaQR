@@ -10,7 +10,7 @@ def main():
     """
 
     parser = argparse.ArgumentParser(description="Get three times the data into a QR code using RGB.")
-    parser.add_argument("command", type=str, help="command to perform, must be encode or decode")
+    parser.add_argument("command", choices=["encode", "decode", "serve"], help="command to perform, must be encode, decode, or serve")
     parser.add_argument("--inFile", type=str, help="path to input file")
     parser.add_argument("--text", type=str, help="text to encode")
     parser.add_argument("--outFile", type=str, help="path to output file")
@@ -48,3 +48,7 @@ def main():
                 f.write(decoded_bytes)
         else:
             print(decoded_bytes.decode())
+
+    elif args.command == "serve":
+        from .server import run
+        run()
