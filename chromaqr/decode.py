@@ -33,7 +33,8 @@ class Decoder:
             converted_image.thumbnail((800, 800))
 
         for i in range(3):
-            rgb_image = ImageOps.colorize(converted_image.split()[i], "#000000", "#ffffff", blackpoint=100, whitepoint=180)
+            rgb_image = ImageOps.autocontrast(converted_image.split()[i])
+            rgb_image = ImageOps.colorize(rgb_image, "#000000", "#ffffff", blackpoint=100, whitepoint=180)
             decoded_codes = pyzbar.decode(rgb_image, symbols=[pyzbar.ZBarSymbol.QRCODE])
 
             if self.debug:
