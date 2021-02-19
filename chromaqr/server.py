@@ -9,8 +9,9 @@ import os
 import json
 import urllib.request
 
-absolute_directory = __file__.replace("\\server.py", "")
-app = Flask("ChromaQR", template_folder=f"{absolute_directory}\\templates")
+sep = "\\" if "\\" in __file__ else "/"
+absolute_directory = __file__.replace(f"{sep}server.py", "")
+app = Flask("ChromaQR", template_folder=f"{absolute_directory}{sep}templates")
 CORS(app)
 
 @app.route("/")
@@ -27,7 +28,7 @@ def realtime():
 
 @app.route("/logo.png")
 def logo():
-    return send_file(f"{absolute_directory}\\..\\tests\\images\\generated.png")
+    return send_file(f"{absolute_directory}{sep}..{sep}tests{sep}images{sep}generated.png")
 
 @app.route("/encode", methods=["POST"])
 def encode():
