@@ -16,6 +16,7 @@ def main():
     parser.add_argument("--outFile", type=str, help="path to output file")
     parser.add_argument("--debug", action="store_true", help="whether to decode in debug mode")
     parser.add_argument("--errorCorrection", choices=["LOW", "MED", "HIGH", "MAX"], default="MED", help="level of error correction to use")
+    parser.add_argument("--port", type=int, default=8000, help="port to host the server on")
     args = parser.parse_args()
 
     if args.command == "encode":
@@ -51,4 +52,4 @@ def main():
 
     elif args.command == "serve":
         from .server import run
-        run()
+        run(port=args.port)

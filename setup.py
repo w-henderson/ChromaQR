@@ -18,7 +18,9 @@ setup(
         "pyzbar",
         "colorama",
         "qrcode",
-        "pillow"
+        "pillow",
+        "flask",
+        "flask-cors"
     ],
     extras_require={
         "tests": ["pytest"],
