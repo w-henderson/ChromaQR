@@ -13,7 +13,11 @@ CORS(app)
 
 @app.route("/")
 def home():
-    return "ChromaQR server online"
+    return """
+        <style>body{font-family:Helvetica;text-align:center;margin-top:200px;}</style>
+        <h1>ChromaQR API</h1>
+        <a href="https://github.com/w-henderson/ChromaQR">GitHub</a> &bull; <a href="/demo">Demo</a>
+    """
 
 @app.route("/encode", methods=["POST"])
 def encode():
@@ -22,20 +26,33 @@ def encode():
     Takes one parameter, `data`, to encode.
     """
 
-    if "data" not in request.form.to_dict().keys():
+    form = request.form.to_dict()
+
+    if "data" not in form.keys():
         return Response(json.dumps({
             "method": "encode",
             "success": False,
             "error": "please specify the data parameter containing the string to encode"
         }), status=400, mimetype="application/json")
 
-    if "format" not in request.form.to_dict().keys():
+    if "format" not in form.keys():
         result_mode = "json"
     else:
-        result_mode = request.form.to_dict()["format"]
+        result_mode = form["format"]
 
-    data = request.form.to_dict()["data"]
-    encoder = Encoder()
+    if "errorCorrection" not in form.keys():
+        error_correction = "MED"
+    elif form["errorCorrection"] in ["LOW", "MED", "HIGH", "MAX"]:
+        error_correction = form["errorCorrection"]
+    else:
+        return Response(json.dumps({
+            "method": "encode",
+            "success": False,
+            "error": "invalid error correction value, valid values are LOW, MED, HIGH and MAX"
+        }), status=400, mimetype="application/json")        
+
+    data = form["data"]
+    encoder = Encoder(error_correction=error_correction)
     image = encoder.encode(data.encode("utf-8"))
     
     output_data = BytesIO()
@@ -47,7 +64,7 @@ def encode():
         return Response(json.dumps({
             "method": "encode",
             "success": True,
-            "error_correction": "MED",
+            "error_correction": error_correction,
             "result": data_uri
         }), mimetype="application/json")
     elif result_mode == "image":
@@ -102,16 +119,12 @@ def demo():
     return """
         <html>
             <meta name="viewport" content="width=device-width">
+            <title>ChromaQR API Demo</title>
             <style>
                 body {
                     font-family:Helvetica;
                     text-align:center;
-                    display:flex;
-                    place-items:center;
-                    place-content:center;
-                    flex-direction:column;
-                    height:100%;
-                    margin:0;
+                    margin-top:200px;
                 }
             </style>
             <body>
@@ -120,10 +133,17 @@ def demo():
                 <form action="/encode" method="POST" enctype="multipart/form-data">
                     <input type="text" name="data" placeholder="Text to encode" style="margin-bottom:5px" />
                     <input type="submit" /><br>
-                    <input type="radio" id="json" name="format" value="json">
-                    <label for="json">Return JSON (default)</label><br>
+                    <label for="ec">Error correction level:</label>
+                    <select id="ec" name="errorCorrection">
+                        <option value="LOW">LOW</option>
+                        <option value="MED" selected>MED</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="MAX">MAX</option>
+                    </select><br>
+                    <input type="radio" id="json" name="format" value="json" checked>
+                    <label for="json">Return JSON (default)</label>
                     <input type="radio" id="image" name="format" value="image">
-                    <label for="image">Return Image</label>
+                    <label for="image">Return image</label>
                 </form>
                 <h2>Demo Decode</h2>
                 <form action="/decode" method="POST" enctype="multipart/form-data">

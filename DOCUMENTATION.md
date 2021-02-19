@@ -38,7 +38,7 @@ $ chromaqr serve --port 80
 The HTTP API is another way to interact with ChromaQR codes. You can try it out at the [demo page](https://chromaqr.herokuapp.com/demo).
 
 ### Encoding
-To encode with the API, send a POST request to the `/encode` endpoint (on my Heroku instance this will be `https://chromaqr.herokuapp.com/encode`) with the form parameter `data` set to the data you wish to encode. Currently, there is no support for modifying error correction in the API. You can, however, pass the `format` optional parameter to indicate how you want your result returned. By default, it is set to `json`, which returns a JSON string. You can change it to `image` which just serves the image instead.
+To encode with the API, send a POST request to the `/encode` endpoint (on my Heroku instance this will be `https://chromaqr.herokuapp.com/encode`) with the form parameter `data` set to the data you wish to encode. You can pass the `errorCorrection` optional parameter with one of the values `LOW`, `MED`, `HIGH`, or `MAX` to specify the error correction to use. You can also pass the `format` optional parameter to indicate how you want your result returned. By default, it is set to `json`, which returns a JSON string. You can change it to `image` which just serves the image instead.
 
 **Examples with `curl`:**
 ```sh
@@ -51,6 +51,14 @@ $ curl --data data="Hello from ChromaQR!" https://chromaqr.herokuapp.com/encode
 }
 
 $ curl --data "data='Hello from ChromaQR!'&format=image" https://chromaqr.herokuapp.com/encode --output "demo.png"
+
+$ curl --data "data='Hello from ChromaQR!'&errorCorrection=MAX" https://chromaqr.herokuapp.com/encode
+{
+    "method": "encode",
+    "success": true,
+    "error_correction": "MAX",
+    "result": "data:image/png;base64,... data URI here"
+}
 ```
 
 ### Decoding

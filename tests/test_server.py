@@ -24,6 +24,21 @@ def test_server_encode_success(client):
     assert response_json["error_correction"] == "MED"
     assert type(response_json["result"]) == str
 
+def test_server_encode_error_correction(client):
+    """Test case for a successful encode with a custom error correction."""
+
+    request = {"data": "Hello from ChromaQR!", "errorCorrection": "MAX"}
+    
+    response = client.post("/encode", data=request, follow_redirects=True)
+    response_json = json.loads(response.data)
+
+    assert response.status_code == 200
+    assert list(response_json.keys()) == ["method", "success", "error_correction", "result"]
+    assert response_json["method"] == "encode"
+    assert response_json["success"] == True
+    assert response_json["error_correction"] == "MAX"
+    assert type(response_json["result"]) == str
+
 def test_server_encode_error(client):
     """Test case for an erroneous encode with the wrong parameters."""
 
@@ -51,6 +66,20 @@ def test_server_encode_invalid_format(client):
     assert response_json["method"] == "encode"
     assert response_json["success"] == False
     assert response_json["error"] == "unknown format, accepted formats are 'json' and 'image'"
+
+def test_server_encode_invalid_error_correction(client):
+    """Test case for an erroneous encode with an invalid error correction."""
+
+    request = {"data": "Hello from ChromaQR!", "errorCorrection": "invalid"}
+
+    response = client.post("/encode", data=request, follow_redirects=True)
+    response_json = json.loads(response.data)
+
+    assert response.status_code == 400
+    assert list(response_json.keys()) == ["method", "success", "error"]
+    assert response_json["method"] == "encode"
+    assert response_json["success"] == False
+    assert response_json["error"] == "invalid error correction value, valid values are LOW, MED, HIGH and MAX"
 
 def test_server_decode_success(client):
     """Test case for a successful decode."""
