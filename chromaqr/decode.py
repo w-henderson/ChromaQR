@@ -31,8 +31,8 @@ class Decoder:
         else:
             converted_image = image
 
-        if converted_image.size[0] > 1280 or converted_image.size[1] > 720:
-            converted_image.thumbnail((min(1280, converted_image.size[0]), min(720, converted_image.size[1])))
+        if converted_image.size[0] > 1280 or converted_image.size[1] > 1280:
+            converted_image.thumbnail((min(1280, converted_image.size[0]), min(1280, converted_image.size[1])))
 
         code_quad = None
 
