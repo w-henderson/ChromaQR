@@ -15,7 +15,7 @@ A traditional QR code allows for a maximum of just [2953 bytes](https://www.qrco
 - You can decode ChromaQR codes with `chromaqr decode --inFile encoded.png` to print the decoded text to the console or `chromaqr decode --inFile encoded.png --outFile decoded.txt`.
 
 ## Quick Start with the API
-To try out the API easily from your browser, visit the [demo page](https://chromaqr.herokuapp.com/demo). If you want to try scanning with your device's camera, you can try the somewhat-buggy [realtime demo](https://chromaqr.herokuapp.com/realtime).
+To try out the API easily from your browser, visit the [demo page](https://chromaqr.herokuapp.com/demo). If you want to try scanning with your device's camera, you can try the [realtime demo](https://chromaqr.herokuapp.com/realtime).
 
 To encode some text with the API, make a POST request to `https://chromaqr.herokuapp.com/encode` (or wherever you host your own instance) with the form parameter `data` set to the text you want to encode. You'll receive a JSON response that looks like this:
 ```json

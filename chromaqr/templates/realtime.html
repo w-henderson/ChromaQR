@@ -18,26 +18,84 @@
             margin: 0;
             padding: 0;
         }
-        video {
+        div:first-child {
+            position: absolute;
+            top: 0;
             width: 100%;
             height: calc(100% - 50px);
+            overflow: hidden;
         }
-        div {
+        canvas {
+            min-width: 100%; 
+            min-height: 100%; 
+            
+            width: auto;
+            height: auto;
+            
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+        }
+        div:last-of-type {
+            position: absolute;
+            bottom: 0;
             width: 100%;
             height: 50px;
-            padding: 12.5px;
+            padding: 16px;
+        }
+        video {
+            display: none;
         }
     </style>
-    <script>
-        window.onload = () => {
-            let video = document.querySelector("video");
-            let div = document.querySelector("div");
-            let rect = video.getBoundingClientRect();
+</head>
 
+<body>
+    <div class="videoContainer"><canvas></canvas></div>
+    <div class="message">Loading...</div>
+    <video></video>
+
+    <script>
+        let video = document.querySelector("video");
+        let div = document.querySelector("div.message");
+        let canvas = document.querySelector("canvas");
+        let ctx = canvas.getContext("2d");
+        let rect = video.getBoundingClientRect();
+        let interval = null;
+        let scanFrame = null;
+        let coordinates = null;
+        let doUpdate = true;
+        
+        video.addEventListener("loadedmetadata", () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        });
+        
+        function updateFrameOfVideo() {
+            if (doUpdate) ctx.drawImage(video, 0, 0);
+            else if (coordinates !== null) {
+                let imageObj = new Image();
+                imageObj.src = scanFrame;
+                ctx.drawImage(imageObj, 0, 0);
+                ctx.beginPath();
+                ctx.lineCap = "round";
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = "red";
+                ctx.moveTo(coordinates[0][0], coordinates[0][1]);
+                for (let i = 1; i <= 4; i++) {
+                    ctx.lineTo(coordinates[i % 4][0], coordinates[i % 4][1]);
+                }
+                ctx.stroke();
+            }
+        }
+
+        window.setInterval(updateFrameOfVideo, 1000 / 30);
+        
+        window.onload = () => {
             navigator.mediaDevices.getUserMedia({
                 video: {
-                    width: { ideal: rect.width },
-                    height: { ideal: rect.height },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
                     facingMode: "environment"
                 },
                 audio: false
@@ -46,33 +104,31 @@
                 document.querySelector("video").play();
 
                 function capture() {
-                    new ImageCapture(stream.getVideoTracks()[0]).grabFrame().then((frame) => {
-                        let virtualCanvas = document.createElement("canvas");
-                        virtualCanvas.width = frame.width;
-                        virtualCanvas.height = frame.height;
-                        let ctx = virtualCanvas.getContext("2d");
-                        ctx.drawImage(frame, 0, 0);
-                        let dataURL = virtualCanvas.toDataURL("image/png");
+                    let dataURL = doUpdate ? canvas.toDataURL("image/png") : "";
+                    scanFrame = dataURL;
 
-                        let formData = new FormData();
-                        formData.append("url", dataURL);
+                    let formData = new FormData();
+                    formData.append("url", dataURL);
 
-                        window.fetch("/decode", {
-                            method: "POST",
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                div.textContent = result.result;
-                                div.style.fontWeight = "bold";
-                                window.setTimeout(capture, 5000);
-                            } else {
-                                div.textContent = "Detecting...";
-                                div.style.fontWeight = "normal";
-                                window.setTimeout(capture, 1000);
-                            }
-                        });
+                    window.fetch("/decode", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            div.textContent = result.result;
+                            div.style.fontWeight = "bold";
+                            doUpdate = false;
+                            coordinates = result.coordinates;
+                            window.setTimeout(capture, 5000);
+                        } else {
+                            div.textContent = "Detecting...";
+                            div.style.fontWeight = "normal";
+                            doUpdate = true;
+                            coordinates = null;
+                            window.setTimeout(capture, 1000);
+                        }
                     });
                 }
 
@@ -80,13 +136,6 @@
             });
         }
     </script>
-</head>
-
-<body>
-    <video></video>
-    <div>
-        Detecting...
-    </div>
 </body>
 
 </html>
