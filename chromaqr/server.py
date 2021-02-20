@@ -117,7 +117,8 @@ def decode():
         return Response(json.dumps({
             "method": "decode",
             "success": True,
-            "result": result
+            "result": result,
+            "coordinates": decoder.code_quad
         }), mimetype="application/json")
     else:
         return Response(json.dumps({

@@ -9,6 +9,8 @@ class Decoder:
 
     def __init__(self, debug=False):
         self.debug = debug
+        self.result = None
+        self.code_quad = None
 
     def decode(self, image: Image) -> bytearray:
         """
@@ -29,8 +31,10 @@ class Decoder:
         else:
             converted_image = image
 
-        if converted_image.size[0] > 800 or converted_image.size[1] > 800:
-            converted_image.thumbnail((800, 800))
+        if converted_image.size[0] > 1280 or converted_image.size[1] > 720:
+            converted_image.thumbnail((min(1280, converted_image.size[0]), min(720, converted_image.size[1])))
+
+        code_quad = None
 
         for i in range(3):
             rgb_image = ImageOps.autocontrast(converted_image.split()[i])
@@ -52,4 +56,14 @@ class Decoder:
                 decoded_code.rect.top + decoded_code.rect.height,
             ))
 
+            if i == 0:
+                code_quad = [
+                    [decoded_code.polygon[0].x, decoded_code.polygon[0].y],
+                    [decoded_code.polygon[1].x, decoded_code.polygon[1].y],
+                    [decoded_code.polygon[2].x, decoded_code.polygon[2].y],
+                    [decoded_code.polygon[3].x, decoded_code.polygon[3].y]
+                ]
+
+        self.result = decoded_bytes
+        self.code_quad = code_quad
         return decoded_bytes

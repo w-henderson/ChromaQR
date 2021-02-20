@@ -96,10 +96,16 @@ def test_server_decode_success(client):
     response_json = json.loads(response.data)
 
     assert response.status_code == 200
-    assert list(response_json.keys()) == ["method", "success", "result"]
+    assert list(response_json.keys()) == ["method", "success", "result", "coordinates"]
     assert response_json["method"] == "decode"
     assert response_json["success"] == True
     assert response_json["result"] == "Hello from ChromaQR!"
+    assert response_json["coordinates"] == [
+        [40, 40],
+        [40, 250],
+        [250, 250],
+        [250, 40]
+    ]
 
 def test_server_decode_url(client):
     """Test case for a successful decode from a URL."""
@@ -115,7 +121,7 @@ def test_server_decode_url(client):
     response_json = json.loads(response.data)
 
     assert response.status_code == 200
-    assert list(response_json.keys()) == ["method", "success", "result"]
+    assert list(response_json.keys()) == ["method", "success", "result", "coordinates"]
     assert response_json["method"] == "decode"
     assert response_json["success"] == True
     assert response_json["result"] == "Hello from ChromaQR!"
@@ -134,7 +140,7 @@ def test_server_decode_uri(client):
     response_json = json.loads(response.data)
 
     assert response.status_code == 200
-    assert list(response_json.keys()) == ["method", "success", "result"]
+    assert list(response_json.keys()) == ["method", "success", "result", "coordinates"]
     assert response_json["method"] == "decode"
     assert response_json["success"] == True
     assert response_json["result"] == "Hello from ChromaQR!"

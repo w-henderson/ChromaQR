@@ -62,7 +62,7 @@ $ curl --data "data=Hello from ChromaQR!&errorCorrection=MAX" https://chromaqr.h
 ```
 
 ### Decoding
-To decode with the API, send a POST request to the `/decode` endpoint (on my Heroku instance this will be `https://chromaqr.herokuapp.com/decode`) with the form file `image` set to the image file you wish to decode. Alternatively, set the parameter `url` to a URL containing an image to decode instead. If an error occurs, this is sent.
+To decode with the API, send a POST request to the `/decode` endpoint (on my Heroku instance this will be `https://chromaqr.herokuapp.com/decode`) with the form file `image` set to the image file you wish to decode. Alternatively, set the parameter `url` to a URL containing an image to decode instead. If an error occurs, this is sent. The API also returns the coordinates of each corner of the detected code.
 
 **Example with `curl`:**
 ```sh
@@ -70,14 +70,26 @@ $ curl -F image=@demo.png https://chromaqr.herokuapp.com/decode
 {
     "method": "decode",
     "success": true,
-    "result": "Hello from ChromaQR!"
+    "result": "Hello from ChromaQR!",
+    "coordinates": [
+        [0, 0],
+        [0, 200],
+        [200, 200],
+        [200, 0]
+    ]
 }
 
 $ curl --data url=https://example.com/image.png https://chromaqr.herokuapp.com/decode
 {
     "method": "decode",
     "success": true,
-    "result": "Hello from ChromaQR!"
+    "result": "Hello from ChromaQR!",
+    "coordinates": [
+        [0, 0],
+        [0, 200],
+        [200, 200],
+        [200, 0]
+    ]
 }
 
 $ curl -F image=@bad_image.png https://chromaqr.herokuapp.com/decode
