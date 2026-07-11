@@ -107,7 +107,7 @@
                     scanFrame = dataURL;
 
                     let formData = new FormData();
-                    formData.append("url", dataURL);
+                    formData.append("dataUri", dataURL);
 
                     window.fetch("/decode", {
                         method: "POST",

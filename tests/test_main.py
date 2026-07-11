@@ -1,4 +1,5 @@
 import chromaqr
+import pytest
 from PIL import Image
 
 def test_generated_decode():
@@ -19,3 +20,11 @@ def test_encode_decode():
     decoded = decoder.decode(encoded)
 
     assert decoded == stringToEncode
+
+
+def test_original_encoder_rejects_high_bytes_instead_of_corrupting_them():
+    with pytest.raises(ValueError, match="7-bit ASCII"):
+        chromaqr.Encoder().encode(b"\x80\xff")
+
+    with pytest.raises(ValueError, match="compatibility_data must be 7-bit ASCII"):
+        chromaqr.Encoder().encode_compatible(b"binary is fine \xff", "é".encode())

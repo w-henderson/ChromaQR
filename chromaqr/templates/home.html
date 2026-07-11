@@ -5,7 +5,9 @@
 {% endblock %}
 
 {% block content %}
-A traditional QR code allows for a maximum of just <a href="https://www.qrcode.com/en/about/version.html">2953 bytes</a> to be encoded, as it only uses black and white colours. I saw an easy upgrade here: why not use the three RGB colour channels separately to triple the storage to 8859 bytes? So that's what ChromaQR does, in the form of a CLI, HTTP API, and Python package.<br><br>
+The image above is a format-v2 backwards-compatible ChromaQR. An ordinary QR scanner sees its luminance payload, while ChromaQR validates and decodes a separate colour payload. The luma-balanced palette keeps the ordinary layer close to a two-level QR, and per-channel markers, lengths, and CRCs prevent ordinary or grayscale codes from being mistaken for colour data.<br><br>
+
+The original three-channel format remains available for legacy images. It can store up to 8,859 bytes but is not readable by ordinary QR scanners. For new codes, use the compatible format and PNG whenever possible.<br><br>
 
 <b>Read more on the <a href="https://github.com/w-henderson/ChromaQR">GitHub</a>.</b>
 {% endblock %}

@@ -1,0 +1,3 @@
+include README.md DOCUMENTATION.md LICENSE
+recursive-include chromaqr/templates *.html
+recursive-include chromaqr/static *.png
