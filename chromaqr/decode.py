@@ -203,6 +203,30 @@ class Decoder:
         return result, self._quad(first_code)
 
     @staticmethod
+    def _normalize_white_balance(image):
+        """Remove a global per-channel cast without changing image geometry.
+
+        Format-v2's codebooks use almost the full range of every RGB channel.
+        Stretching each channel independently therefore reverses the common
+        camera/white-balance failure mode where one channel is uniformly
+        compressed. This is deliberately only a retry: clean images retain
+        the exact palette decision path, and the framed markers plus per-chunk
+        and total CRCs still authenticate every normalized result.
+        """
+
+        return Image.merge(
+            "RGB",
+            tuple(ImageOps.autocontrast(channel) for channel in image.split()),
+        )
+
+    def _decode_compatible_with_retry(self, converted_image):
+        decoded = self._decode_extracted(converted_image)
+        if decoded is not None:
+            return decoded
+        normalized = self._normalize_white_balance(converted_image)
+        return self._decode_extracted(normalized)
+
+    @staticmethod
     def _is_effectively_grayscale(image):
         red, green, blue = image.split()
         differences = (
@@ -257,7 +281,7 @@ class Decoder:
     def decode_compatible(self, image: Image) -> bytearray:
         """Decode only a framed format-v2 colour payload."""
 
-        decoded = self._decode_extracted(self._prepare_image(image))
+        decoded = self._decode_compatible_with_retry(self._prepare_image(image))
         if decoded is None:
             self.result = b""
             self.code_quad = None
@@ -285,7 +309,7 @@ class Decoder:
         """Decode format-v2 first, then an unambiguous original ChromaQR."""
 
         converted_image = self._prepare_image(image)
-        decoded = self._decode_extracted(converted_image)
+        decoded = self._decode_compatible_with_retry(converted_image)
         if decoded is None:
             decoded = self._decode_legacy(converted_image)
         if decoded is None:

@@ -6,7 +6,7 @@ from io import BytesIO
 import cv2
 import numpy
 import pytest
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 from qrcode import QRCode
 
 import chromaqr
@@ -30,6 +30,30 @@ def make_compatible_code():
         CHROMA_PAYLOAD,
         COMPATIBILITY_PAYLOAD
     )
+
+
+def apply_channel_cast(image, factors):
+    return Image.merge(
+        "RGB",
+        tuple(
+            channel.point(
+                lambda value, factor=factor: min(255, round(value * factor))
+            )
+            for channel, factor in zip(image.convert("RGB").split(), factors)
+        ),
+    )
+
+
+def jpeg_round_trip(image, quality, subsampling):
+    output = BytesIO()
+    image.save(
+        output,
+        "JPEG",
+        quality=quality,
+        subsampling=subsampling,
+    )
+    output.seek(0)
+    return Image.open(output).copy()
 
 
 def decode_with_opencv(image):
@@ -57,6 +81,14 @@ def test_chromaqr_decoder_reads_colour_payload():
     assert decoder.decode_compatibility(image) == COMPATIBILITY_PAYLOAD
 
 
+def test_representative_code_uses_every_codebook_colour():
+    colours = set(make_compatible_code().getdata())
+
+    assert colours == set(
+        chromaqr.Encoder.DARK_CODEBOOK + chromaqr.Encoder.LIGHT_CODEBOOK
+    )
+
+
 def test_ordinary_qr_is_never_fabricated_as_three_chroma_copies():
     qr = QRCode()
     qr.add_data(b"ordinary QR, not ChromaQR", optimize=0)
@@ -78,6 +110,21 @@ def test_grayscale_compatible_image_only_exposes_ordinary_layer():
     assert decoder.decode_compatibility(image) == COMPATIBILITY_PAYLOAD
 
 
+def test_coloured_ordinary_qr_artwork_never_fabricates_chroma():
+    qr = QRCode()
+    qr.add_data(b"coloured ordinary QR artwork", optimize=0)
+    qr.make(fit=True)
+    image = qr.make_image(
+        fill_color=(12, 48, 96),
+        back_color=(248, 224, 168),
+    ).convert("RGB")
+
+    decoder = chromaqr.Decoder()
+    assert decoder.decode(image) == b""
+    assert decoder.decode_compatible(image) == b""
+    assert decoder.decode_compatibility(image) == b"coloured ordinary QR artwork"
+
+
 def test_readme_example_is_scannable():
     image = Image.open("assets/backward_compatible_demo.png")
 
@@ -96,26 +143,56 @@ def test_optional_encode_argument_is_backwards_compatible_api():
     assert decode_with_opencv(image) == COMPATIBILITY_PAYLOAD.decode("ascii")
 
 
-@pytest.mark.parametrize(
-    "image_format,save_options",
-    [
-        ("PNG", {}),
-        ("JPEG", {"quality": 90, "subsampling": 0}),
-    ]
-)
-def test_resized_image_round_trip(image_format, save_options):
+@pytest.mark.parametrize("degradation", [
+    "resize-60",
+    "resize-75",
+    "jpeg-85-420",
+    "jpeg-90-420",
+    "jpeg-95-420",
+    "blur-0.8",
+    "saturation-0.8",
+    "saturation-1.2",
+])
+def test_common_degradation_sweep(degradation):
     image = make_compatible_code()
-    image = image.resize(
-        (round(image.width * 0.75), round(image.height * 0.75)),
-        Image.Resampling.BICUBIC
-    )
-    output = BytesIO()
-    image.save(output, image_format, **save_options)
-    output.seek(0)
-    reopened = Image.open(output)
+    if degradation.startswith("resize"):
+        scale = int(degradation.split("-")[1]) / 100
+        image = image.resize(
+            (round(image.width * scale), round(image.height * scale)),
+            Image.Resampling.BICUBIC,
+        )
+    elif degradation.startswith("jpeg"):
+        quality = int(degradation.split("-")[1])
+        image = jpeg_round_trip(image, quality=quality, subsampling=2)
+    elif degradation.startswith("blur"):
+        image = image.filter(ImageFilter.GaussianBlur(radius=0.8))
+    elif degradation.startswith("saturation"):
+        factor = float(degradation.split("-")[1])
+        image = ImageEnhance.Color(image).enhance(factor)
 
-    assert chromaqr.Decoder().decode(reopened) == CHROMA_PAYLOAD
-    assert decode_with_opencv(reopened) == COMPATIBILITY_PAYLOAD.decode("ascii")
+    decoder = chromaqr.Decoder()
+    assert decoder.decode(image) == CHROMA_PAYLOAD
+    assert decoder.decode_compatibility(image) == COMPATIBILITY_PAYLOAD
+    assert decode_with_opencv(image) == COMPATIBILITY_PAYLOAD.decode("ascii")
+
+
+@pytest.mark.parametrize("factors", [
+    (1.08, 1.0, 0.92),
+    (0.92, 1.0, 1.08),
+    (1.12, 1.0, 0.88),
+    (0.88, 1.0, 1.12),
+])
+def test_white_balance_retry_recovers_warm_and_cool_casts(factors):
+    image = apply_channel_cast(make_compatible_code(), factors)
+    decoder = chromaqr.Decoder()
+
+    # These casts deterministically defeat the raw fixed-codebook decision,
+    # proving that the successful public decode comes from the guarded retry.
+    assert decoder._decode_extracted(decoder._prepare_image(image)) is None
+    assert decoder.decode_compatible(image) == CHROMA_PAYLOAD
+    assert decoder.decode(image) == CHROMA_PAYLOAD
+    assert decoder.decode_compatibility(image) == COMPATIBILITY_PAYLOAD
+    assert decode_with_opencv(image) == COMPATIBILITY_PAYLOAD.decode("ascii")
 
 
 def test_arbitrary_binary_round_trip_in_compatible_format():
