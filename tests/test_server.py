@@ -107,10 +107,15 @@ def test_server_decode_success(client):
         [250, 40]
     ]
 
-def test_server_decode_url(client):
-    """Test case for a successful decode from a URL."""
+@pytest.mark.parametrize("url", [
+    "https://example.com/code.png",
+    "http://127.0.0.1/private.png",
+    "http://10.0.0.1/private.png",
+])
+def test_server_rejects_all_remote_urls(client, url):
+    """Remote fetching is deliberately unsupported to prevent SSRF."""
 
-    request = {"url": "https://github.com/w-henderson/ChromaQR/raw/master/tests/images/generated.png"}
+    request = {"url": url}
     
     response = client.post(
         "/decode",
@@ -120,11 +125,10 @@ def test_server_decode_url(client):
     )
     response_json = json.loads(response.data)
 
-    assert response.status_code == 200
-    assert list(response_json.keys()) == ["method", "success", "result", "coordinates"]
+    assert response.status_code == 400
     assert response_json["method"] == "decode"
-    assert response_json["success"] == True
-    assert response_json["result"] == "Hello from ChromaQR!"
+    assert response_json["success"] == False
+    assert "not supported" in response_json["error"]
 
 def test_server_decode_uri(client):
     """Test case for a successful decode from a URI."""
@@ -162,7 +166,7 @@ def test_server_decode_no_image(client):
     assert list(response_json.keys()) == ["method", "success", "error"]
     assert response_json["method"] == "decode"
     assert response_json["success"] == False
-    assert response_json["error"] == "no image file was recognised in your request, either upload a file with the identifier 'image' or submit a URL called 'url'"
+    assert "upload a file named 'image'" in response_json["error"]
 
 def test_server_decode_no_code(client):
     """Test case for an erroneous decode where no ChromaQR code was found."""
@@ -183,3 +187,80 @@ def test_server_decode_no_code(client):
     assert response_json["method"] == "decode"
     assert response_json["success"] == False
     assert response_json["error"] == "no ChromaQR code was found in the uploaded image"
+
+
+@pytest.mark.parametrize("value", [
+    "not-a-data-uri",
+    "data:text/plain;base64,SGVsbG8=",
+    "data:image/png;base64,%%%",
+])
+def test_server_rejects_malformed_data_uris(client, value):
+    response = client.post("/decode", data={"dataUri": value})
+    assert response.status_code == 400
+    assert json.loads(response.data)["success"] is False
+
+
+def test_server_rejects_oversized_upload(client):
+    response = client.post(
+        "/decode",
+        data={"image": (BytesIO(b"x" * (5 * 1024 * 1024 + 1)), "huge.png")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    assert "5 MiB" in json.loads(response.data)["error"]
+
+
+def test_server_enforces_total_request_limit(client):
+    response = client.post(
+        "/decode",
+        data=b"x" * (8 * 1024 * 1024 + 1),
+        content_type="application/octet-stream",
+    )
+    assert response.status_code == 413
+    assert "8 MiB" in json.loads(response.data)["error"]
+
+
+def test_server_rejects_decompression_bomb_dimensions(client):
+    from PIL import Image
+
+    image = Image.new("1", (4100, 4100), 1)
+    encoded = BytesIO()
+    image.save(encoded, "PNG")
+    response = client.post(
+        "/decode",
+        data={"image": (BytesIO(encoded.getvalue()), "bomb.png")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    assert "megapixel" in json.loads(response.data)["error"]
+
+
+@pytest.mark.parametrize("compatible", [False, True])
+def test_server_encode_format_image(client, compatible):
+    data = {"data": "image response", "format": "image"}
+    if compatible:
+        data["compatibilityData"] = "ordinary response"
+    response = client.post("/encode", data=data)
+
+    assert response.status_code == 200
+    assert response.mimetype == "image/png"
+    assert response.headers["Cache-Control"] == "no-store"
+    from PIL import Image
+    image = Image.open(BytesIO(response.data))
+    expected = b"image response"
+    assert chromaqr.server.Decoder().decode(image) == expected
+
+
+def test_server_rejects_binary_result_without_corrupting_it(client):
+    from PIL import Image
+
+    image = chromaqr.server.Encoder().encode_compatible(b"\xff\x80\x00", b"ordinary")
+    encoded = BytesIO()
+    image.save(encoded, "PNG")
+    response = client.post(
+        "/decode",
+        data={"image": (BytesIO(encoded.getvalue()), "binary.png")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 422
+    assert "binary" in json.loads(response.data)["error"]

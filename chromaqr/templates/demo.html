@@ -8,6 +8,7 @@
     <h2>Encoding Demo</h2>
     <form action="/encode" method="POST" enctype="multipart/form-data">
         <input type="text" name="data" placeholder="Text to encode" style="margin-bottom:5px;height:2em;" />
+        <input type="text" name="compatibilityData" placeholder="Optional ordinary QR text" style="margin-bottom:5px;height:2em;" />
         <input type="submit" style="height:2em;" /><br>
         <input type="radio" id="json" name="format" value="json" checked>
         <label for="json">Return JSON (default)</label> &bull;
@@ -25,6 +26,10 @@
     <h2>Decoding Demo</h2>
     <form action="/decode" method="POST" enctype="multipart/form-data">
         <input type="file" name="image" />
+        <select name="layer">
+            <option value="chroma" selected>Colour payload</option>
+            <option value="compatibility">Ordinary payload</option>
+        </select>
         <input type="submit" />
     </form>
 {% endblock %}

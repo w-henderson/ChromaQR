@@ -31,8 +31,8 @@
 <body>
     <article class="markdown-body">
         <p align="center">
-            <a href="{{ url_for('home') }}"><img src="logo.png"></a><br>
-            <img src="https://img.shields.io/github/workflow/status/w-henderson/ChromaQR/ChromaQR-Tests?style=for-the-badge">
+            <a href="{{ url_for('home') }}"><img src="{{ url_for('logo') }}" width="360" alt="Backwards-compatible ChromaQR demo"></a><br>
+            <img src="https://github.com/w-henderson/ChromaQR/actions/workflows/test.yml/badge.svg">
             <img src="https://img.shields.io/badge/python-3-blue?style=for-the-badge&logo=python">
             <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge">
             <img src="https://img.shields.io/badge/colour-chroma-red?style=for-the-badge"><br>
@@ -43,7 +43,7 @@
         </p>
         
         {% block header %}{% endblock %}
-        {% block content %}{% endblock %}
+{% block content %}{% endblock %}
     </article>
 </body>
 
