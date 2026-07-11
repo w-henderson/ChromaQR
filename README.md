@@ -122,3 +122,7 @@ Original ChromaQR splits 7-bit ASCII bytes into three independent monochrome QR 
 | Ordinary QR control | Original legacy ChromaQR (not normal-scanner compatible) |
 | --- | --- |
 | <img src="assets/biggest_possible_qrcode.png" width="300" alt="ordinary black and white QR capacity control"> | <img src="assets/biggest_possible_chromaqrcode.png" width="300" alt="legacy three-channel ChromaQR capacity example"> |
+
+## Acknowledgements
+
+ChromaQR was originally created by [William Henderson (@w-henderson)](https://github.com/w-henderson). This backwards-compatible work builds on his [original ChromaQR repository](https://github.com/w-henderson/ChromaQR). Many thanks to William for creating and open-sourcing the project that made this extension possible.

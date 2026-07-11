@@ -171,6 +171,10 @@ PNG is recommended. The ordinary layer is intentionally more robust than the col
 
 ChromaQR has no public hosted service. Replace `https://your-domain.example` with your own production deployment.
 
+## Project lineage and thanks
+
+ChromaQR was originally created by [William Henderson (@w-henderson)](https://github.com/w-henderson). The backwards-compatible format documented here extends his [original ChromaQR repository](https://github.com/w-henderson/ChromaQR). Thank you to William for creating and open-sourcing the original project.
+
 ### `POST /encode`
 
 Form fields:
