@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="assets/backward_compatible_demo.png" width="420" alt="Backwards-compatible ChromaQR: an ordinary scanner sees the project URL and ChromaQR sees a hidden message"><br>
-  <strong>Scan this with a normal QR reader:</strong> it resolves the ordinary compatibility layer.<br>
+  <img src="assets/backward_compatible_demo.png" width="420" alt="Backwards-compatible ChromaQR: an ordinary scanner sees the self-hosted app URL and ChromaQR sees a hidden message"><br>
+  <strong>Scan this with a normal QR reader:</strong> it reads the ordinary compatibility layer.<br>
   ChromaQR decodes the independent colour payload shown below.
 </p>
 
